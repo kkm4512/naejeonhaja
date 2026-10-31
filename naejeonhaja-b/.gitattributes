@@ -1,0 +1,18 @@
+# Java
+*.java linguist-language=Java
+*.gradle linguist-language=Groovy
+
+# Documentation
+README.md linguist-documentation=false
+
+# Generated files
+*.class linguist-generated=true
+*.jar linguist-generated=true
+
+# Vendor files
+gradle/wrapper/gradle-wrapper.jar linguist-vendored=true
+
+# Line endings (gradlew must stay LF so it runs inside Linux/Docker)
+gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf

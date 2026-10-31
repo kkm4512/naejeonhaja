@@ -1,0 +1,71 @@
+# 내전하자: DB(PostgreSQL) + 백엔드(Spring Boot) + 프론트엔드(Nuxt) 한 번에 실행
+#
+#   1) 이 폴더에 .env 파일을 만들고 RIOT_API_KEY 를 넣는다 (.env.example 참고)
+#   2) docker compose up -d --build
+#   3) 브라우저에서 http://localhost:3000
+#
+# 브라우저는 프론트(3000)만 접속하고, 프론트 서버가 /api 요청을 backend 컨테이너로 넘긴다.
+# DB 데이터는 pgdata 볼륨에 남으므로 컨테이너를 지웠다 다시 만들어도 방·멤버·기록이 유지된다.
+# (완전히 지우려면: docker compose down -v)
+name: naejeonhaja
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: naejeonhaja
+      POSTGRES_USER: naejeonhaja
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-naejeonhaja}
+      TZ: Asia/Seoul
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U naejeonhaja -d naejeonhaja"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
+    build: ./naejeonhaja-b
+    environment:
+      RIOT_API_KEY: ${RIOT_API_KEY:-}
+      DB_URL: jdbc:postgresql://db:5432/naejeonhaja
+      DB_USERNAME: naejeonhaja
+      DB_PASSWORD: ${DB_PASSWORD:-naejeonhaja}
+      APP_SECRET: ${APP_SECRET:-}
+      APP_ADMIN_TOKEN: ${APP_ADMIN_TOKEN:-}
+      RIOT_RATE_LIMITS: ${RIOT_RATE_LIMITS:-18:1,95:120}
+      LOL_SUB_LINE_PENALTY: ${LOL_SUB_LINE_PENALTY:-100}
+      LOL_OFF_ROLE_PENALTY: ${LOL_OFF_ROLE_PENALTY:-250}
+      LOL_INSIGHT_SAMPLE: ${LOL_INSIGHT_SAMPLE:-20}
+      LOL_SEASON_START: ${LOL_SEASON_START:-}
+      # 프론트를 다른 도메인에 따로 배포할 때만 필요 (쉼표로 여러 개)
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+    # Swagger(http://localhost:8080/docs) 확인용. 이 컴퓨터에서만 열린다.
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 3s
+      start_period: 60s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build: ./naejeonhaja-f
+    environment:
+      NUXT_API_BASE: http://backend:8080
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

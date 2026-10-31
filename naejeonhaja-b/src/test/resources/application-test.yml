@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:naejeonhaja;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: none
+riot:
+  api:
+    # 테스트에서는 한도 대기 없이
+    rate-limits: "1000:1"
+app:
+  secret: test-secret-for-unit-tests-only
+lol:
+  insight:
+    sample: 20
+    season-start: 2026-01-01

@@ -1,0 +1,22 @@
+# 비밀값 (Riot API 키, DB 비밀번호)
+.env
+.env.*
+!.env.example
+
+# 빌드 결과물 / 의존성
+node_modules/
+.nuxt/
+.output/
+.data/
+build/
+.gradle/
+out/
+bin/
+
+# 에디터 / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
